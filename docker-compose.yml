@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    container_name: s_kibana
+    ports:
+      - 80:80
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    container_name: s_elasticsearch
+    ports:
+      - 9200:9200
+    environment:
+      - network.host=0.0.0.0
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=ifrit
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.4.0
+    container_name: s_logstash
+    ports:
+      - 5044:5044
+    depends_on:
+      - elasticsearch
