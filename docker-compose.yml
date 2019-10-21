@@ -1,0 +1,55 @@
+version: "3.7"
+
+services:
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    container_name: s_kibana
+    ports:
+      - 80:80
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    container_name: s_elasticsearch
+    ports:
+      - 9200:9200
+    environment:
+      - network.host=0.0.0.0
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=ifrit
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.4.0
+    container_name: s_logstash
+    ports:
+      - 5044:5044
+    depends_on:
+      - elasticsearch
+
+  icinga:
+    container_name: s_icinga
+    build:
+      context: ./icinga2
+    command: ['./start.sh']
+    ports:
+      - 81:80
+    env_file:
+      - ./icinga2/icinga.env
+      - ./icinga2/db/mariadb.env
+    volumes:
+      - ./icinga2/etc/icinga2/features-available/ido-mysql.conf:/etc/icinga2/features-available/ido-mysql.conf
+      - ./icinga2/etc/icinga2/conf.d/api-users.conf:/etc/icinga2/conf.d/api-users.conf
+    depends_on:
+      - icinga_db
+
+  icinga_db:
+    image: yobasystems/alpine-mariadb
+    container_name: s_icinga_db
+    env_file:
+      - ./icinga2/db/mariadb.env
+    volumes:
+      - v_icingadb:/var/lib/mysql
+
+volumes:
+  v_icingadb:
