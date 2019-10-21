@@ -1,0 +1,19 @@
+#!/bin/bash
+
+function install_module {
+    MODULE_NAME=$1
+    MODULE_VERSION=$2
+
+    MODULES_PATH="/usr/share/icingaweb2/modules"
+    MODULE_PATH="${MODULES_PATH}/${MODULE_NAME}"
+    RELEASES="https://github.com/Icinga/icingaweb2-module-${MODULE_NAME}/archive"
+    TMP_FILE="$(mktemp -d)"/$MODULE_NAME
+    MODULE_URL="$RELEASES/${MODULE_VERSION}.tar.gz"
+
+    echo "Using '$TMP_FILE' as temporary file for '$MODULE_URL'"
+    mkdir "$MODULE_PATH" && wget -q $MODULE_URL -O $TMP_FILE
+    tar xfz $TMP_FILE -C "$MODULE_PATH" --strip-components 1
+
+    icingacli module enable "${MODULE_NAME}"
+    rm -f $TMP_FILE
+}
