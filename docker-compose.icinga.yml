@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+
+  icinga_db:
+    image: yobasystems/alpine-mariadb
+    container_name: s_icinga_db
+    env_file:
+      - ./icinga2/db/mariadb.env
+    volumes:
+      - v_icingadb:/var/lib/mysql
+ 
+  icinga_core1:
+    container_name: s_icinga_core1
+    build:
+      context: ./icinga2/masters
+    command: ['./start.sh']
+    ports:
+      - 5665:5665
+    env_file:
+      - ./icinga2/icinga.env
+      - ./icinga2/masters/icinga_masters.env
+      - ./icinga2/db/mariadb.env
+    volumes:
+      - ./icinga2/etc/icinga2/features-available/ido-mysql.conf:/etc/icinga2/features-available/ido-mysql.conf
+      - ./icinga2/etc/icinga2/conf.d/api-users.conf:/etc/icinga2/conf.d/api-users.conf
+    depends_on:
+      - icinga_db
+
+  icinga_web:
+    container_name: s_icinga_web
+    build:
+      context: ./icinga2/
+    command: ['./start.sh']
+    ports:
+      - 81:80
+    env_file:
+      - ./icinga2/icinga.env
+      - ./icinga2/web/icinga_web.env
+      - ./icinga2/db/mariadb.env
+    volumes:
+      - ./icinga2/etc/icinga2/features-available/ido-mysql.conf:/etc/icinga2/features-available/ido-mysql.conf
+      - ./icinga2/etc/icinga2/conf.d/api-users.conf:/etc/icinga2/conf.d/api-users.conf
+    depends_on:
+      - icinga_core1

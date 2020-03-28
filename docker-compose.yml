@@ -27,29 +27,13 @@ services:
     depends_on:
       - elasticsearch
 
-  icinga:
-    container_name: s_icinga
+  grafana:
+    container_name: s_grafana
     build:
-      context: ./icinga2
-    command: ['./start.sh']
+      context: ./grafana
     ports:
-      - 81:80
-    env_file:
-      - ./icinga2/icinga.env
-      - ./icinga2/db/mariadb.env
-    volumes:
-      - ./icinga2/etc/icinga2/features-available/ido-mysql.conf:/etc/icinga2/features-available/ido-mysql.conf
-      - ./icinga2/etc/icinga2/conf.d/api-users.conf:/etc/icinga2/conf.d/api-users.conf
-    depends_on:
-      - icinga_db
-
-  icinga_db:
-    image: yobasystems/alpine-mariadb
-    container_name: s_icinga_db
-    env_file:
-      - ./icinga2/db/mariadb.env
-    volumes:
-      - v_icingadb:/var/lib/mysql
+      - 3000:3000
 
 volumes:
   v_icingadb:
+  v_ldc_mssql:
